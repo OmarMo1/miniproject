@@ -6,7 +6,13 @@ import re
 beginstation = 'Amsterdam'
 eindstation = 'gouda'
 
-#print(response.text)
+
+def request_vertrektijd(beginstation):
+    auth_details = ('mohamed.omar@student.hu.nl', 'zQYfnb1XEgH7eMqdfCi6k1rZ-GjRD70Nwy2_GZdSxRiccCrmQCahpQ')
+    api_url = 'http://webservices.ns.nl/ns-api-avt?station=' + beginstation
+    response = requests.get(api_url, auth=auth_details)
+    with open('vertrektijden.xml', 'w') as vertrekFile:
+        vertrekFile.write(response.text)
 
 def request(beginstation, eindstation):
     auth_details = ('mohamed.omar@student.hu.nl', 'zQYfnb1XEgH7eMqdfCi6k1rZ-GjRD70Nwy2_GZdSxRiccCrmQCahpQ')
@@ -125,10 +131,4 @@ def striphtml(data):
     else:
         x = 'Er zijn geen storingen op deze station'
         return x
-
-# print(striphtml(data))
-# print(Naam_beginstation(vertrektijd))
-# print(spoor(vertrektijd))
-
-# print(reisDetail(vertrektijd))
 
