@@ -1,6 +1,6 @@
 import tkinter as tk
 import tkinter.messagebox
-from NS_API import *
+from final_NS_API import *
 
 
 class NS_APP(tk.Tk):
