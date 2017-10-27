@@ -3,8 +3,8 @@ from datetime import datetime
 from datetime import timezone
 import re
 
-beginstation = 'Amsterdam'
-eindstation = 'gouda'
+beginstation = 'gouda'
+eindstation = 'Rotterdam'
 
 def request_vertrektijd(beginstation):
     auth_details = ('mohamed.omar@student.hu.nl', 'zQYfnb1XEgH7eMqdfCi6k1rZ-GjRD70Nwy2_GZdSxRiccCrmQCahpQ')
@@ -13,13 +13,13 @@ def request_vertrektijd(beginstation):
     with open('vertrektijden.xml', 'w') as vertrekFile:
         vertrekFile.write(response.text)
 
-def request(beginstation, eindstation):
     auth_details = ('mohamed.omar@student.hu.nl', 'zQYfnb1XEgH7eMqdfCi6k1rZ-GjRD70Nwy2_GZdSxRiccCrmQCahpQ')
     api_url = 'http://webservices.ns.nl/ns-api-storingen?station=' + beginstation
     response = requests.get(api_url, auth=auth_details)
     with open('storingen.xml', 'w') as myXMLFile:
         myXMLFile.write(response.text)
 
+def request(beginstation, eindstation):
     auth_details = ('mohamed.omar@student.hu.nl', 'zQYfnb1XEgH7eMqdfCi6k1rZ-GjRD70Nwy2_GZdSxRiccCrmQCahpQ')
     api_url = 'http://webservices.ns.nl/ns-api-avt?station=' + beginstation
     response = requests.get(api_url, auth=auth_details)
@@ -33,7 +33,7 @@ def request(beginstation, eindstation):
         treinplannerFile.write(response.text)
 
 request(beginstation, eindstation)
-
+request_vertrektijd(beginstation)
 
 def vertrektijden():
     with open('treinplanner.xml', 'r') as treinplannerFile:
@@ -59,7 +59,6 @@ def spoor(vertrektijd):
                 if isinstance(x, dict):
                     return x['ReisStop'][0]['Spoor']['#text']
                 elif isinstance(x, list):
-                    # print('list')
                     return x[0]['ReisStop'][0]['Spoor']['#text']
 
 
@@ -104,30 +103,36 @@ def naam_beginstation(vertrektijd):
                 if isinstance(x, dict):
                     return x['ReisStop'][0]['Naam']
                 elif isinstance(x, list):
-                    # print('list')
+
                     return x[0]['ReisStop'][0]['Naam']
 
-def storing(vertrektijd):
+def storing():
     with open('storingen.xml', 'r') as storingenFile:
         content = xmltodict.parse(storingenFile.read())
-        if content['Storingen']['Gepland']:
-            for line in content['Storingen']['Gepland']['Storing']:
-                if eindstation in line['Traject']:
-                    data = line['Bericht']
+        data = ''
+        if content['Storingen']['Ongepland']:
+            try:
+                if content['Storingen']['Ongepland']['Storing']:
+                    for line in content['Storingen']['Ongepland']['Storing']:
+                        data += 'Reden: '+line['Reden']+'\n'+line['Bericht']+'\n'
                     return data
+            except TypeError:
+                data = content['Storingen']['Ongepland']['Storing']['Bericht']
+                return data
+
         else:
-            data = 'Er zijn geen storingen op deze station'
+            data = 'Er zijn geen ongeplande storingen'
             return data
 
 
-data = storing(vertrektijd)
+
+
+data = storing()
 
 
 def striphtml(data):
-    if data:
-        p = re.compile(r'<.*?>')
-        return p.sub('', data)
-    else:
-        x = 'Er zijn geen storingen op deze station'
-        return x
+    p = re.compile(r'<.*?>')
+    return p.sub('', data)
 
+
+# print(striphtml(data))
